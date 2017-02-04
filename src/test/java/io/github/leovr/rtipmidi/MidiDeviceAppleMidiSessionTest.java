@@ -29,21 +29,17 @@ public class MidiDeviceAppleMidiSessionTest {
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
-    private MidiDeviceAppleMidiSession session;
 
     @Before
     public void setUp() throws Exception {
         given(midiDevice.isOpen()).willReturn(false);
         given(midiDevice.getMaxReceivers()).willReturn(-1);
         given(midiDevice.getReceiver()).willReturn(receiver);
-
-        session = new MidiDeviceAppleMidiSession(midiDevice);
     }
 
     @Test
     public void testInstatniationAlreadyOpen() throws Exception {
         exception.expect(AppleMidiSessionInstantiationException.class);
-
         given(midiDevice.isOpen()).willReturn(true);
 
         new MidiDeviceAppleMidiSession(midiDevice);
@@ -57,6 +53,7 @@ public class MidiDeviceAppleMidiSessionTest {
         given(midiDevice.getMaxReceivers()).willReturn(0);
 
         new MidiDeviceAppleMidiSession(midiDevice);
+
         verify(midiDevice).isOpen();
         verify(midiDevice).getMaxReceivers();
     }
@@ -67,6 +64,7 @@ public class MidiDeviceAppleMidiSessionTest {
         willThrow(new MidiUnavailableException()).given(midiDevice).open();
 
         new MidiDeviceAppleMidiSession(midiDevice);
+
         verify(midiDevice).isOpen();
         verify(midiDevice).getMaxReceivers();
         verify(midiDevice).open();
@@ -78,6 +76,7 @@ public class MidiDeviceAppleMidiSessionTest {
         willThrow(new MidiUnavailableException()).given(midiDevice).getReceiver();
 
         new MidiDeviceAppleMidiSession(midiDevice);
+
         verify(midiDevice).isOpen();
         verify(midiDevice).getMaxReceivers();
         verify(midiDevice).open();
@@ -87,6 +86,7 @@ public class MidiDeviceAppleMidiSessionTest {
     @Test
     public void testNormalInstantiation() throws Exception {
         new MidiDeviceAppleMidiSession(midiDevice);
+
         verify(midiDevice).isOpen();
         verify(midiDevice).getMaxReceivers();
         verify(midiDevice).open();
@@ -97,11 +97,15 @@ public class MidiDeviceAppleMidiSessionTest {
     public void testGetMicroseconds() throws Exception {
         given(midiDevice.getMicrosecondPosition()).willReturn(133L);
 
+        final MidiDeviceAppleMidiSession session = new MidiDeviceAppleMidiSession(midiDevice);
+
         assertThat(session.getCurrentTimestampIn100Microseconds()).isEqualTo(13300L);
     }
 
     @Test
     public void testCloseMidiDevice() throws Exception {
+        final MidiDeviceAppleMidiSession session = new MidiDeviceAppleMidiSession(midiDevice);
+
         session.onEndSession();
 
         verify(midiDevice).close();
@@ -111,6 +115,8 @@ public class MidiDeviceAppleMidiSessionTest {
     public void sendMidiMessage() throws Exception {
         final ShortMessage message = new ShortMessage();
         final long timestamp = 5L;
+
+        final MidiDeviceAppleMidiSession session = new MidiDeviceAppleMidiSession(midiDevice);
         session.onMidiMessage(message, timestamp);
 
         verify(receiver).send(message, timestamp);
