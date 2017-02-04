@@ -1,4 +1,4 @@
-![build status](https://travis-ci.org/LeovR/rtp-midi.svg?branch=master)
+[![Build Status](https://travis-ci.org/LeovR/rtp-midi.svg?branch=master)](https://travis-ci.org/LeovR/rtp-midi)
 # rtpmidi
 A Java implementation of the RTP-MIDI protocol. 
 
