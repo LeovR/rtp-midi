@@ -15,6 +15,44 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
 
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <description>Java RTP-MIDI implementation</description>
+    <url>https://github.com/leovr/rtp-midi</url>
+
+    <issueManagement>
+        <url>https://github.com/leovr/rtp-midi/issues</url>
+        <system>GitHub Issues</system>
+    </issueManagement>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/leovr/rtp-midi</url>
+        <connection>scm:git:git://github.com/leovr/rtp-midi.git</connection>
+        <developerConnection>scm:git:git@github.com:leovr/rtp-midi.git</developerConnection>
+    </scm>
+
+    <developers>
+        <developer>
+            <email>jan.marten@gmx.de</email>
+            <name>Jan Marten</name>
+            <url>https://leovr.github.io</url>
+            <id>janmarten</id>
+        </developer>
+    </developers>
+
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
