@@ -42,7 +42,7 @@ public class MidiDeviceAppleMidiSession extends AppleMidiSession {
     }
 
     @Override
-    public long getCurrentTimestampIn100Microseconds() {
+    public long getCurrentTimestamp() {
         final long microsecondPosition = midiDevice.getMicrosecondPosition();
         if (microsecondPosition == -1) {
             return -1;

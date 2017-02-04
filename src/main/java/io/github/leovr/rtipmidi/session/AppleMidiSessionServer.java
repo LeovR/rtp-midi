@@ -171,8 +171,8 @@ public class AppleMidiSessionServer extends Thread implements AppleMidiCommandLi
             final AppleMidiSessionAppleMidiServer sessionTuple = currentSessions.get(clockSynchronization.getSsrc());
             final long currentTimestamp;
             if (sessionTuple != null &&
-                    sessionTuple.getAppleMidiSession().getCurrentTimestampIn100Microseconds() != -1) {
-                currentTimestamp = sessionTuple.getAppleMidiSession().getCurrentTimestampIn100Microseconds();
+                    sessionTuple.getAppleMidiSession().getCurrentTimestamp() != -1) {
+                currentTimestamp = sessionTuple.getAppleMidiSession().getCurrentTimestamp();
             } else {
                 currentTimestamp = ManagementFactory.getRuntimeMXBean().getUptime() * 10;
             }

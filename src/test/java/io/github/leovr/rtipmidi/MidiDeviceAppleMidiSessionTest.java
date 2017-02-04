@@ -99,7 +99,7 @@ public class MidiDeviceAppleMidiSessionTest {
 
         final MidiDeviceAppleMidiSession session = new MidiDeviceAppleMidiSession(midiDevice);
 
-        assertThat(session.getCurrentTimestampIn100Microseconds()).isEqualTo(13300L);
+        assertThat(session.getCurrentTimestamp()).isEqualTo(13300L);
     }
 
     @Test

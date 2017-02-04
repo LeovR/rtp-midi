@@ -20,7 +20,7 @@ public abstract class AppleMidiSession implements AppleMidiMessageListener, Appl
 
     private long offsetEstimate;
 
-    public long getCurrentTimestampIn100Microseconds() {
+    public long getCurrentTimestamp() {
         return ManagementFactory.getRuntimeMXBean().getUptime() * 10;
     }
 
