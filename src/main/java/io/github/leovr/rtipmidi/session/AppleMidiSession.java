@@ -14,12 +14,22 @@ import javax.annotation.Nonnull;
 import javax.sound.midi.MidiMessage;
 import java.lang.management.ManagementFactory;
 
+/**
+ * This class represents a single MIDI session with a remote server. It simplifies the methods of {@link
+ * AppleMidiMessageListener} and {@link AppleMidiCommandListener} for the subclasses.
+ */
 @Getter
 @Setter
 public abstract class AppleMidiSession implements AppleMidiMessageListener, AppleMidiCommandListener {
 
     private long offsetEstimate;
 
+    /**
+     * Returns the current timestamp in 100 microseconds. The default implementation uses the JVM startup time as
+     * reference.
+     *
+     * @return The timestamp in 100 microseconds or -1 if the session does not care about the timestamp
+     */
     public long getCurrentTimestamp() {
         return ManagementFactory.getRuntimeMXBean().getUptime() * 10;
     }
@@ -30,6 +40,12 @@ public abstract class AppleMidiSession implements AppleMidiMessageListener, Appl
         onMidiMessage(message, timestamp + offsetEstimate);
     }
 
+    /**
+     * Called for every received MIDI messages
+     *
+     * @param message   The MIDI message
+     * @param timestamp The timestamp of the message
+     */
     protected abstract void onMidiMessage(final MidiMessage message, final long timestamp);
 
     @Override
@@ -48,6 +64,9 @@ public abstract class AppleMidiSession implements AppleMidiMessageListener, Appl
         onEndSession();
     }
 
+    /**
+     * Called on end session. Any clean-up can happen here.
+     */
     protected void onEndSession() {
     }
 }

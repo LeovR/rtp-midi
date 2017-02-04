@@ -184,7 +184,7 @@ public class AppleMidiMessageHandler {
     }
 
     /**
-     * @return Is partial?
+     * @return Is the sysex a partial message?
      */
     private boolean readSysexData(final DataInputStream midiInputStream, final ByteArrayOutputStream sysexData) throws
             IOException {

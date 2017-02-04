@@ -10,6 +10,9 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import java.util.Objects;
 
+/**
+ * {@link AppleMidiSession} with a {@link MidiDevice} as the receiver of the MIDI messages
+ */
 public class MidiDeviceAppleMidiSession extends AppleMidiSession {
 
     private final Receiver receiver;

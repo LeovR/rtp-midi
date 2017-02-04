@@ -134,7 +134,8 @@ public class AppleMidiSessionServer extends Thread implements AppleMidiCommandLi
     }
 
     @Override
-    public void onMidiInvitation(@Nonnull final AppleMidiInvitationRequest invitation, @Nonnull final AppleMidiServer appleMidiServer) {
+    public void onMidiInvitation(@Nonnull final AppleMidiInvitationRequest invitation,
+                                 @Nonnull final AppleMidiServer appleMidiServer) {
         log.info("MIDI invitation from: {}", appleMidiServer);
         if (getSessionServerState() == State.ACCEPT_INVITATIONS) {
             sendMidiInvitationAnswer(appleMidiServer, "accept",
@@ -170,8 +171,7 @@ public class AppleMidiSessionServer extends Thread implements AppleMidiCommandLi
         if (clockSynchronization.getCount() == (byte) 0) {
             final AppleMidiSessionAppleMidiServer sessionTuple = currentSessions.get(clockSynchronization.getSsrc());
             final long currentTimestamp;
-            if (sessionTuple != null &&
-                    sessionTuple.getAppleMidiSession().getCurrentTimestamp() != -1) {
+            if (sessionTuple != null && sessionTuple.getAppleMidiSession().getCurrentTimestamp() != -1) {
                 currentTimestamp = sessionTuple.getAppleMidiSession().getCurrentTimestamp();
             } else {
                 currentTimestamp = ManagementFactory.getRuntimeMXBean().getUptime() * 10;
@@ -194,7 +194,8 @@ public class AppleMidiSessionServer extends Thread implements AppleMidiCommandLi
     }
 
     @Override
-    public void onEndSession(@Nonnull final AppleMidiEndSession appleMidiEndSession, @Nonnull final AppleMidiServer appleMidiServer) {
+    public void onEndSession(@Nonnull final AppleMidiEndSession appleMidiEndSession,
+                             @Nonnull final AppleMidiServer appleMidiServer) {
         log.info("Session end from: {}", appleMidiServer);
         Optional.ofNullable(currentSessions.get(appleMidiEndSession.getSsrc())).ifPresent(
                 sessionTuple -> sessionTuple.getAppleMidiSession().onEndSession(appleMidiEndSession, appleMidiServer));
@@ -226,6 +227,9 @@ public class AppleMidiSessionServer extends Thread implements AppleMidiCommandLi
         sessionChangeListeners.forEach(listener -> listener.onMaxNumberOfSessionsChange(sessions.size()));
     }
 
+    /**
+     * @return The current number of available sessions for receiving MIDI messages
+     */
     public int getNumberOfAvailableSessions() {
         return sessions.size();
     }
