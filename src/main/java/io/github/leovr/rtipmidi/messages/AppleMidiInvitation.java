@@ -1,5 +1,6 @@
 package io.github.leovr.rtipmidi.messages;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -11,6 +12,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Getter
 @ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 public abstract class AppleMidiInvitation extends AppleMidiCommand {
 
     private final int protocolVersion;

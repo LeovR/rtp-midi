@@ -1,5 +1,6 @@
 package io.github.leovr.rtipmidi.messages;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -10,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 
 @Getter
 @ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 public class AppleMidiClockSynchronization extends AppleMidiCommand {
 
     private final byte count;
