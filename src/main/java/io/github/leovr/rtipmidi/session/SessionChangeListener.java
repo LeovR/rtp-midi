@@ -1,4 +1,4 @@
-package io.github.leovr.rtipmidi;
+package io.github.leovr.rtipmidi.session;
 
 public interface SessionChangeListener {
 

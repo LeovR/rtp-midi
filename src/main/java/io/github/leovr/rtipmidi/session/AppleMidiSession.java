@@ -1,5 +1,7 @@
-package io.github.leovr.rtipmidi;
+package io.github.leovr.rtipmidi.session;
 
+import io.github.leovr.rtipmidi.AppleMidiCommandListener;
+import io.github.leovr.rtipmidi.AppleMidiMessageListener;
 import io.github.leovr.rtipmidi.messages.AppleMidiClockSynchronization;
 import io.github.leovr.rtipmidi.messages.AppleMidiEndSession;
 import io.github.leovr.rtipmidi.messages.AppleMidiInvitationRequest;

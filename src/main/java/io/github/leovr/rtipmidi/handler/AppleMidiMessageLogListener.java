@@ -1,5 +1,6 @@
-package io.github.leovr.rtipmidi;
+package io.github.leovr.rtipmidi.handler;
 
+import io.github.leovr.rtipmidi.AppleMidiMessageListener;
 import io.github.leovr.rtipmidi.messages.MidiCommandHeader;
 import lombok.extern.slf4j.Slf4j;
 

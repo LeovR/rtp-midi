@@ -1,6 +1,10 @@
-package io.github.leovr.rtipmidi;
+package io.github.leovr.rtipmidi.session;
 
+import io.github.leovr.rtipmidi.AppleMidiCommandListener;
+import io.github.leovr.rtipmidi.AppleMidiMessageListener;
 import io.github.leovr.rtipmidi.error.AppleMidiSessionServerRuntimeException;
+import io.github.leovr.rtipmidi.handler.AppleMidiCommandHandler;
+import io.github.leovr.rtipmidi.handler.AppleMidiMessageHandler;
 import io.github.leovr.rtipmidi.messages.AppleMidiClockSynchronization;
 import io.github.leovr.rtipmidi.messages.AppleMidiCommand;
 import io.github.leovr.rtipmidi.messages.AppleMidiEndSession;
@@ -10,6 +14,8 @@ import io.github.leovr.rtipmidi.messages.AppleMidiInvitationDeclined;
 import io.github.leovr.rtipmidi.messages.AppleMidiInvitationRequest;
 import io.github.leovr.rtipmidi.messages.MidiCommandHeader;
 import io.github.leovr.rtipmidi.model.AppleMidiServer;
+import io.github.leovr.rtipmidi.session.AppleMidiSession;
+import io.github.leovr.rtipmidi.session.SessionChangeListener;
 import lombok.NonNull;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;

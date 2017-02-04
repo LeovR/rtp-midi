@@ -1,6 +1,7 @@
 package io.github.leovr.rtipmidi;
 
 import io.github.leovr.rtipmidi.error.AppleMidiSessionInstantiationException;
+import io.github.leovr.rtipmidi.session.AppleMidiSession;
 
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiMessage;

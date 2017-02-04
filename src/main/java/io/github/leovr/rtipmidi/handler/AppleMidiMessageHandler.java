@@ -1,5 +1,7 @@
-package io.github.leovr.rtipmidi;
+package io.github.leovr.rtipmidi.handler;
 
+import io.github.leovr.rtipmidi.AppleMidiMessageListener;
+import io.github.leovr.rtipmidi.AppleMidiMessageLogListener;
 import io.github.leovr.rtipmidi.messages.MidiCommandHeader;
 import io.github.leovr.rtipmidi.messages.RtpHeader;
 import io.github.leovr.rtipmidi.model.AppleMidiServer;
