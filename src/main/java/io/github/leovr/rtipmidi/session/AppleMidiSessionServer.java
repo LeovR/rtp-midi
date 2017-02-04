@@ -41,7 +41,6 @@ import static io.github.leovr.rtipmidi.messages.AppleMidiCommand.MIDI_COMMAND_HE
 @Slf4j
 public class AppleMidiSessionServer extends Thread implements AppleMidiCommandListener, AppleMidiMessageListener {
 
-
     private static final int SOCKET_TIMEOUT = 1000;
 
     private enum State {
@@ -71,7 +70,7 @@ public class AppleMidiSessionServer extends Thread implements AppleMidiCommandLi
     private final Map<Integer, AppleMidiSessionAppleMidiServer> currentSessions = new HashMap<>();
     private final List<SessionChangeListener> sessionChangeListeners = new ArrayList<>();
 
-    public AppleMidiSessionServer(final String name, final int port) {
+    public AppleMidiSessionServer(@Nonnull final String name, final int port) {
         super(name + "SessionThread");
         this.port = port;
         this.ssrc = new Random().nextInt();
@@ -135,7 +134,7 @@ public class AppleMidiSessionServer extends Thread implements AppleMidiCommandLi
     }
 
     @Override
-    public void onMidiInvitation(final AppleMidiInvitationRequest invitation, final AppleMidiServer appleMidiServer) {
+    public void onMidiInvitation(@Nonnull final AppleMidiInvitationRequest invitation, @Nonnull final AppleMidiServer appleMidiServer) {
         log.info("MIDI invitation from: {}", appleMidiServer);
         if (getSessionServerState() == State.ACCEPT_INVITATIONS) {
             sendMidiInvitationAnswer(appleMidiServer, "accept",
@@ -166,8 +165,8 @@ public class AppleMidiSessionServer extends Thread implements AppleMidiCommandLi
     }
 
     @Override
-    public void onClockSynchronization(final AppleMidiClockSynchronization clockSynchronization,
-                                       final AppleMidiServer appleMidiServer) {
+    public void onClockSynchronization(@Nonnull final AppleMidiClockSynchronization clockSynchronization,
+                                       @Nonnull final AppleMidiServer appleMidiServer) {
         if (clockSynchronization.getCount() == (byte) 0) {
             final AppleMidiSessionAppleMidiServer sessionTuple = currentSessions.get(clockSynchronization.getSsrc());
             final long currentTimestamp;
@@ -195,7 +194,7 @@ public class AppleMidiSessionServer extends Thread implements AppleMidiCommandLi
     }
 
     @Override
-    public void onEndSession(final AppleMidiEndSession appleMidiEndSession, final AppleMidiServer appleMidiServer) {
+    public void onEndSession(@Nonnull final AppleMidiEndSession appleMidiEndSession, @Nonnull final AppleMidiServer appleMidiServer) {
         log.info("Session end from: {}", appleMidiServer);
         Optional.ofNullable(currentSessions.get(appleMidiEndSession.getSsrc())).ifPresent(
                 sessionTuple -> sessionTuple.getAppleMidiSession().onEndSession(appleMidiEndSession, appleMidiServer));
@@ -218,7 +217,7 @@ public class AppleMidiSessionServer extends Thread implements AppleMidiCommandLi
         }
     }
 
-    public void addAppleMidiSession(final AppleMidiSession session) {
+    public void addAppleMidiSession(@Nonnull final AppleMidiSession session) {
         sessions.add(session);
         notifyMaxNumberOfSessions();
     }
@@ -231,7 +230,7 @@ public class AppleMidiSessionServer extends Thread implements AppleMidiCommandLi
         return sessions.size();
     }
 
-    public void removeAppleMidiSession(final AppleMidiSession session) {
+    public void removeAppleMidiSession(@Nonnull final AppleMidiSession session) {
         sessions.remove(session);
         final Optional<Integer> ssrcOptional = currentSessions.entrySet().stream()
                 .filter(entry -> entry.getValue().getAppleMidiSession().equals(session)).findFirst()
@@ -242,11 +241,11 @@ public class AppleMidiSessionServer extends Thread implements AppleMidiCommandLi
         }
     }
 
-    public void addSessionChangeListener(final SessionChangeListener listener) {
+    public void registerSessionChangeListener(@Nonnull final SessionChangeListener listener) {
         sessionChangeListeners.add(listener);
     }
 
-    public void removeSessionChangeListener(final SessionChangeListener listener) {
+    public void unregisterSessionChangeListener(@Nonnull final SessionChangeListener listener) {
         sessionChangeListeners.remove(listener);
     }
 

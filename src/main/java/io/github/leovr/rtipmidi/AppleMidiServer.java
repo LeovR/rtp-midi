@@ -7,6 +7,8 @@ import io.github.leovr.rtipmidi.session.SessionChangeListener;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.Nonnull;
+
 @Slf4j
 public class AppleMidiServer implements SessionChangeListener {
 
@@ -21,18 +23,18 @@ public class AppleMidiServer implements SessionChangeListener {
         this(DEFAULT_NAME, DEFAULT_PORT);
     }
 
-    public AppleMidiServer(final String name, final int port) {
+    public AppleMidiServer(@Nonnull final String name, final int port) {
         this.port = port;
         controlServer = new AppleMidiControlServer(name, port);
         sessionServer = new AppleMidiSessionServer(name, port + 1);
-        sessionServer.addSessionChangeListener(this);
+        sessionServer.registerSessionChangeListener(this);
     }
 
-    public void addAppleMidiSession(final AppleMidiSession session) {
+    public void addAppleMidiSession(@Nonnull final AppleMidiSession session) {
         sessionServer.addAppleMidiSession(session);
     }
 
-    public void removeAppleMidiSession(final AppleMidiSession session) {
+    public void removeAppleMidiSession(@Nonnull final AppleMidiSession session) {
         sessionServer.removeAppleMidiSession(session);
     }
 

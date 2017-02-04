@@ -15,6 +15,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -46,7 +47,7 @@ public class AppleMidiControlServer extends Thread implements AppleMidiCommandLi
     private DatagramSocket socket;
     private final List<AppleMidiServer> acceptedServers = new ArrayList<>();
 
-    public AppleMidiControlServer(final String name, final int port) {
+    public AppleMidiControlServer(@Nonnull final String name, final int port) {
         super(name + THREAD_SUFFIX);
         this.port = port;
         this.ssrc = new Random().nextInt();
@@ -98,7 +99,7 @@ public class AppleMidiControlServer extends Thread implements AppleMidiCommandLi
     }
 
     @Override
-    public void onMidiInvitation(final AppleMidiInvitationRequest invitation, final AppleMidiServer appleMidiServer) {
+    public void onMidiInvitation(@Nonnull final AppleMidiInvitationRequest invitation, @Nonnull final AppleMidiServer appleMidiServer) {
         log.info("MIDI invitation from: {}", appleMidiServer);
         if (getServerState() == State.ACCEPT_INVITATIONS) {
             sendMidiInvitationAnswer(appleMidiServer, "accept",
@@ -131,8 +132,8 @@ public class AppleMidiControlServer extends Thread implements AppleMidiCommandLi
     }
 
     @Override
-    public void onClockSynchronization(final AppleMidiClockSynchronization clockSynchronization,
-                                       final AppleMidiServer appleMidiServer) {
+    public void onClockSynchronization(@Nonnull final AppleMidiClockSynchronization clockSynchronization,
+                                       @Nonnull final AppleMidiServer appleMidiServer) {
     }
 
     private State getServerState() {
@@ -140,7 +141,7 @@ public class AppleMidiControlServer extends Thread implements AppleMidiCommandLi
     }
 
     @Override
-    public void onEndSession(final AppleMidiEndSession appleMidiEndSession, final AppleMidiServer appleMidiServer) {
+    public void onEndSession(@Nonnull final AppleMidiEndSession appleMidiEndSession, @Nonnull final AppleMidiServer appleMidiServer) {
         log.info("Session ended with: {}", appleMidiServer);
         acceptedServers.remove(appleMidiServer);
     }

@@ -5,12 +5,15 @@ import io.github.leovr.rtipmidi.messages.AppleMidiEndSession;
 import io.github.leovr.rtipmidi.messages.AppleMidiInvitationRequest;
 import io.github.leovr.rtipmidi.model.AppleMidiServer;
 
+import javax.annotation.Nonnull;
+
 public interface AppleMidiCommandListener {
 
-    void onMidiInvitation(final AppleMidiInvitationRequest invitation, final AppleMidiServer appleMidiServer);
+    void onMidiInvitation(@Nonnull final AppleMidiInvitationRequest invitation,
+                          @Nonnull final AppleMidiServer appleMidiServer);
 
-    void onClockSynchronization(final AppleMidiClockSynchronization clockSynchronization,
-                                final AppleMidiServer appleMidiServer);
+    void onClockSynchronization(@Nonnull final AppleMidiClockSynchronization clockSynchronization,
+                                @Nonnull final AppleMidiServer appleMidiServer);
 
-    void onEndSession(AppleMidiEndSession appleMidiEndSession, AppleMidiServer appleMidiServer);
+    void onEndSession(@Nonnull AppleMidiEndSession appleMidiEndSession, @Nonnull AppleMidiServer appleMidiServer);
 }

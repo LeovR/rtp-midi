@@ -7,6 +7,7 @@ import io.github.leovr.rtipmidi.model.AppleMidiServer;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.Nonnull;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.ShortMessage;
@@ -28,7 +29,7 @@ public class AppleMidiMessageHandler {
         listeners.add(new AppleMidiMessageLogListener());
     }
 
-    public void handle(final byte[] data, final AppleMidiServer appleMidiServer) {
+    public void handle(@Nonnull final byte[] data, @Nonnull final AppleMidiServer appleMidiServer) {
         try (final DataInputStream dataInputStream = new DataInputStream(new ByteArrayInputStream(data))) {
             final byte header1 = dataInputStream.readByte();
             final byte version = (byte) ((header1 >> 6) & 0x03);
@@ -213,11 +214,11 @@ public class AppleMidiMessageHandler {
         return deltaTime;
     }
 
-    public void registerListener(final AppleMidiMessageListener appleMidiMessageListener) {
+    public void registerListener(@Nonnull final AppleMidiMessageListener appleMidiMessageListener) {
         listeners.add(appleMidiMessageListener);
     }
 
-    public void unregisterListener(final AppleMidiMessageListener appleMidiMessageListener) {
+    public void unregisterListener(@Nonnull final AppleMidiMessageListener appleMidiMessageListener) {
         listeners.remove(appleMidiMessageListener);
     }
 

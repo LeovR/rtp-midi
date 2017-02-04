@@ -10,6 +10,7 @@ import io.github.leovr.rtipmidi.model.AppleMidiServer;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.annotation.Nonnull;
 import javax.sound.midi.MidiMessage;
 import java.lang.management.ManagementFactory;
 
@@ -32,18 +33,18 @@ public abstract class AppleMidiSession implements AppleMidiMessageListener, Appl
     protected abstract void onMidiMessage(final MidiMessage message, final long timestamp);
 
     @Override
-    public final void onMidiInvitation(final AppleMidiInvitationRequest invitation,
-                                       final AppleMidiServer appleMidiServer) {
+    public final void onMidiInvitation(@Nonnull final AppleMidiInvitationRequest invitation,
+                                       @Nonnull final AppleMidiServer appleMidiServer) {
     }
 
     @Override
-    public final void onClockSynchronization(final AppleMidiClockSynchronization clockSynchronization,
-                                             final AppleMidiServer appleMidiServer) {
+    public final void onClockSynchronization(@Nonnull final AppleMidiClockSynchronization clockSynchronization,
+                                             @Nonnull final AppleMidiServer appleMidiServer) {
     }
 
     @Override
-    public final void onEndSession(final AppleMidiEndSession appleMidiEndSession,
-                                   final AppleMidiServer appleMidiServer) {
+    public final void onEndSession(@Nonnull final AppleMidiEndSession appleMidiEndSession,
+                                   @Nonnull final AppleMidiServer appleMidiServer) {
         onEndSession();
     }
 

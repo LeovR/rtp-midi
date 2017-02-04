@@ -8,6 +8,7 @@ import io.github.leovr.rtipmidi.messages.CommandWord;
 import io.github.leovr.rtipmidi.model.AppleMidiServer;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.Nonnull;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -32,7 +33,7 @@ public class AppleMidiCommandHandler {
         listeners.add(new AppleMidiCommandLogListener());
     }
 
-    public void handle(final byte[] data, final AppleMidiServer appleMidiServer) {
+    public void handle(@Nonnull final byte[] data,@Nonnull final AppleMidiServer appleMidiServer) {
         final DataInputStream dataInputStream = new DataInputStream(new ByteArrayInputStream(data));
         try {
             final byte header1 = dataInputStream.readByte();
@@ -124,11 +125,11 @@ public class AppleMidiCommandHandler {
                         appleMidiServer));
     }
 
-    public void registerListener(final AppleMidiCommandListener appleMidiCommandListener) {
+    public void registerListener(@Nonnull final AppleMidiCommandListener appleMidiCommandListener) {
         listeners.add(appleMidiCommandListener);
     }
 
-    public void unregisterListener(final AppleMidiCommandListener appleMidiCommandListener) {
+    public void unregisterListener(@Nonnull final AppleMidiCommandListener appleMidiCommandListener) {
         listeners.remove(appleMidiCommandListener);
     }
 
