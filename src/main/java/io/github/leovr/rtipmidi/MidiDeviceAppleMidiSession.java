@@ -3,6 +3,7 @@ package io.github.leovr.rtipmidi;
 import io.github.leovr.rtipmidi.error.AppleMidiSessionInstantiationException;
 import io.github.leovr.rtipmidi.session.AppleMidiSession;
 
+import javax.annotation.Nonnull;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiUnavailableException;
@@ -14,8 +15,7 @@ public class MidiDeviceAppleMidiSession extends AppleMidiSession {
     private final Receiver receiver;
     private final MidiDevice midiDevice;
 
-    public MidiDeviceAppleMidiSession(final MidiDevice midiDevice) {
-        Objects.requireNonNull(midiDevice, "midiDevice is null");
+    public MidiDeviceAppleMidiSession(@Nonnull final MidiDevice midiDevice) {
         if (midiDevice.isOpen()) {
             throw new AppleMidiSessionInstantiationException("MIDI-Device is already open");
         }

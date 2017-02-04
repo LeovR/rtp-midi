@@ -14,12 +14,10 @@ import io.github.leovr.rtipmidi.messages.AppleMidiInvitationDeclined;
 import io.github.leovr.rtipmidi.messages.AppleMidiInvitationRequest;
 import io.github.leovr.rtipmidi.messages.MidiCommandHeader;
 import io.github.leovr.rtipmidi.model.AppleMidiServer;
-import io.github.leovr.rtipmidi.session.AppleMidiSession;
-import io.github.leovr.rtipmidi.session.SessionChangeListener;
-import lombok.NonNull;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.Nonnull;
 import javax.sound.midi.MidiMessage;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -53,9 +51,9 @@ public class AppleMidiSessionServer extends Thread implements AppleMidiCommandLi
     @Value
     private static class AppleMidiSessionAppleMidiServer {
 
-        @NonNull
+        @Nonnull
         private AppleMidiSession appleMidiSession;
-        @NonNull
+        @Nonnull
         private AppleMidiServer appleMidiServer;
     }
 
