@@ -1,0 +1,25 @@
+# Created by .ignore support plugin (hsz.mobi)
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+!/.mvn/wrapper/maven-wrapper.jar
+.idea/
+.idea/mongoSettings.xml
+*.iws
+*.iml
+/out/
+.idea_modules/
+atlassian-ide-plugin.xml
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
+mvnw
+mvnw.cmd
+.mvn/
