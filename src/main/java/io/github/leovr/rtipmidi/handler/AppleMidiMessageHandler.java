@@ -79,7 +79,7 @@ public class AppleMidiMessageHandler {
             }
 
         } catch (final IOException e) {
-            e.printStackTrace();
+            log.error("IOException while processing MIDI message", e);
         }
     }
 
