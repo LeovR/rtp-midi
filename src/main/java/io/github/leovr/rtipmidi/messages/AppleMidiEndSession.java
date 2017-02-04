@@ -7,7 +7,6 @@ import lombok.ToString;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.Random;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -34,7 +33,6 @@ public class AppleMidiEndSession extends AppleMidiCommand {
         dataOutputStream.writeInt(protocolVersion);
         dataOutputStream.writeInt(initiatorToken);
         dataOutputStream.writeInt(getSsrc());
-        dataOutputStream.writeByte(0);
         dataOutputStream.flush();
         return outputStream.toByteArray();
     }
