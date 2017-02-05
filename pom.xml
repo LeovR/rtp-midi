@@ -4,7 +4,7 @@
 
     <groupId>io.github.leovr</groupId>
     <artifactId>rtp-midi</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.2</version>
 
     <name>rtp-midi</name>
 
@@ -45,7 +45,7 @@
         <url>https://github.com/leovr/rtp-midi</url>
         <connection>scm:git:git://github.com/leovr/rtp-midi.git</connection>
         <developerConnection>scm:git:git@github.com:leovr/rtp-midi.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>rtp-midi-1.0.2</tag>
     </scm>
 
     <developers>
