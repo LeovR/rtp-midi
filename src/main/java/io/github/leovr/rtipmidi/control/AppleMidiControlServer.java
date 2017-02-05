@@ -25,6 +25,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * The control server handles MIDI invitation requests. If there are sessions available in the session server it will
+ * accept invitations and reject otherwise.
+ */
 @Slf4j
 public class AppleMidiControlServer extends Thread implements AppleMidiCommandListener {
 
@@ -47,6 +51,10 @@ public class AppleMidiControlServer extends Thread implements AppleMidiCommandLi
     private DatagramSocket socket;
     private final List<AppleMidiServer> acceptedServers = new ArrayList<>();
 
+    /**
+     * @param name The name under which the other peers should see this server
+     * @param port The control port
+     */
     public AppleMidiControlServer(@Nonnull final String name, final int port) {
         super(name + THREAD_SUFFIX);
         this.port = port;
@@ -67,6 +75,10 @@ public class AppleMidiControlServer extends Thread implements AppleMidiCommandLi
         log.debug("MIDI control server started");
     }
 
+
+    /**
+     * Sends a end session message to all servers and stops the main loop.
+     */
     public void stopServer() {
         acceptedServers.forEach(server -> {
             try {

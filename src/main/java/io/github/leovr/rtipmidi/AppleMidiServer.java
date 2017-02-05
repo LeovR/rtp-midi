@@ -53,6 +53,11 @@ public class AppleMidiServer implements SessionChangeListener {
         sessionServer.addAppleMidiSession(session);
     }
 
+    /**
+     * Remove the {@link AppleMidiSession} from this server
+     *
+     * @param session The session to be removed
+     */
     public void removeAppleMidiSession(@Nonnull final AppleMidiSession session) {
         sessionServer.removeAppleMidiSession(session);
     }
