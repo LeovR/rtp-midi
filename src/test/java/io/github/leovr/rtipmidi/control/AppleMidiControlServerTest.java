@@ -1,5 +1,6 @@
 package io.github.leovr.rtipmidi.control;
 
+import io.github.leovr.rtipmidi.EndSessionListener;
 import io.github.leovr.rtipmidi.handler.AppleMidiCommandHandler;
 import io.github.leovr.rtipmidi.messages.AppleMidiEndSession;
 import io.github.leovr.rtipmidi.messages.AppleMidiInvitationAccepted;
@@ -39,6 +40,8 @@ public class AppleMidiControlServerTest {
     private DatagramPacket datagramPacket;
     @Mock
     private AppleMidiCommandHandler handler;
+    @Mock
+    private EndSessionListener endSessionListener;
     private AppleMidiServer appleMidiServer;
     @Captor
     private ArgumentCaptor<DatagramPacket> datagramPacketArgumentCaptor;
@@ -114,6 +117,7 @@ public class AppleMidiControlServerTest {
     @Test
     public void testEndSession() throws Exception {
         server.start();
+        server.registerEndSessionListener(endSessionListener);
         server.setMaxNumberOfSessions(1);
 
         server.onMidiInvitation(new AppleMidiInvitationRequest(2, 1, 1, "initiator"), appleMidiServer);
@@ -123,11 +127,13 @@ public class AppleMidiControlServerTest {
 
         server.onEndSession(new AppleMidiEndSession(2, 1, 17), appleMidiServer);
 
+        verify(endSessionListener).onEndSession(any(AppleMidiEndSession.class), any(AppleMidiServer.class));
         server.stopServer();
         verify(socket).send(any(DatagramPacket.class));
         server.join();
 
         verify(socket).close();
+
     }
 
 }

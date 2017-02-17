@@ -1,6 +1,7 @@
 package io.github.leovr.rtipmidi.control;
 
 import io.github.leovr.rtipmidi.AppleMidiCommandListener;
+import io.github.leovr.rtipmidi.EndSessionListener;
 import io.github.leovr.rtipmidi.error.AppleMidiControlServerRuntimeException;
 import io.github.leovr.rtipmidi.handler.AppleMidiCommandHandler;
 import io.github.leovr.rtipmidi.messages.AppleMidiClockSynchronization;
@@ -50,6 +51,7 @@ public class AppleMidiControlServer extends Thread implements AppleMidiCommandLi
     private final AppleMidiCommandHandler handler;
     private DatagramSocket socket;
     private final List<AppleMidiServer> acceptedServers = new ArrayList<>();
+    private final List<EndSessionListener> endSessionListeners = new ArrayList<>();
 
     /**
      * @param name The name under which the other peers should see this server
@@ -182,5 +184,25 @@ public class AppleMidiControlServer extends Thread implements AppleMidiCommandLi
                              @Nonnull final AppleMidiServer appleMidiServer) {
         log.info("Session ended with: {}", appleMidiServer);
         acceptedServers.remove(appleMidiServer);
+        endSessionListeners.forEach(listener -> listener.onEndSession(appleMidiEndSession, appleMidiServer));
     }
+
+    /**
+     * Registers a new {@link EndSessionListener}
+     *
+     * @param listener The listener to be registerd
+     */
+    public void registerEndSessionListener(final EndSessionListener listener) {
+        endSessionListeners.add(listener);
+    }
+
+    /**
+     * Unregisters a {@link EndSessionListener}
+     *
+     * @param listener The listener to be unregisterd
+     */
+    public void unregisterEndSessionListener(final EndSessionListener listener) {
+        endSessionListeners.remove(listener);
+    }
+
 }
