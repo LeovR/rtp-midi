@@ -1,8 +1,7 @@
 package io.github.leovr.rtipmidi;
 
 import io.github.leovr.rtipmidi.messages.MidiCommandHeader;
-
-import javax.sound.midi.MidiMessage;
+import io.github.leovr.rtipmidi.model.MidiMessage;
 
 public interface AppleMidiMessageListener {
 

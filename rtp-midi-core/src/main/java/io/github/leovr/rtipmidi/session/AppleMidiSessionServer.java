@@ -14,11 +14,11 @@ import io.github.leovr.rtipmidi.messages.AppleMidiInvitationDeclined;
 import io.github.leovr.rtipmidi.messages.AppleMidiInvitationRequest;
 import io.github.leovr.rtipmidi.messages.MidiCommandHeader;
 import io.github.leovr.rtipmidi.model.AppleMidiServer;
+import io.github.leovr.rtipmidi.model.MidiMessage;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
-import javax.sound.midi.MidiMessage;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.DatagramPacket;

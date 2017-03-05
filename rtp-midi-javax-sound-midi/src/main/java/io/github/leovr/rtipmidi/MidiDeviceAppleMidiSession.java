@@ -12,7 +12,7 @@ import javax.sound.midi.Receiver;
 /**
  * {@link AppleMidiSession} with a {@link MidiDevice} as the receiver of the MIDI messages
  */
-public class MidiDeviceAppleMidiSession extends AppleMidiSession {
+public class MidiDeviceAppleMidiSession extends JavaxAppleMidiSession {
 
     private final Receiver receiver;
     private final MidiDevice midiDevice;

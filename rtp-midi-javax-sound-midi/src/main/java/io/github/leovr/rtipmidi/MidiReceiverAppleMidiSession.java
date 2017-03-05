@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * {@link AppleMidiSession} with one or more {@link Receiver} as the receiver(s) of the MIDI messages
  */
-public class MidiReceiverAppleMidiSession extends AppleMidiSession {
+public class MidiReceiverAppleMidiSession extends JavaxAppleMidiSession {
 
     private final List<Receiver> receivers;
 

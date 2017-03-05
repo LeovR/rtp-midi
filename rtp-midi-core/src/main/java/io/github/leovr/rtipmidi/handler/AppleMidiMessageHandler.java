@@ -1,17 +1,16 @@
 package io.github.leovr.rtipmidi.handler;
 
-import io.github.leovr.rtipmidi.messages.RtpHeader;
 import io.github.leovr.rtipmidi.AppleMidiMessageListener;
 import io.github.leovr.rtipmidi.messages.MidiCommandHeader;
+import io.github.leovr.rtipmidi.messages.RtpHeader;
 import io.github.leovr.rtipmidi.model.AppleMidiServer;
+import io.github.leovr.rtipmidi.model.MidiMessage;
+import io.github.leovr.rtipmidi.model.ShortMessage;
+import io.github.leovr.rtipmidi.model.SysexMessage;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
-import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.MidiMessage;
-import javax.sound.midi.ShortMessage;
-import javax.sound.midi.SysexMessage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -108,73 +107,69 @@ public class AppleMidiMessageHandler {
             }
             deltaTimeSum += deltaTime;
 
-            try {
-                final byte midiOctet1 = midiInputStream.readByte();
-                final boolean systemCommonMessage = (midiOctet1 & 0xF0) == 0xF0;
-                final int possibleStatus = midiOctet1 & 0xFF;
-                if (systemCommonMessage) {
-                    if (midiOctet1 == (byte) SysexMessage.SYSTEM_EXCLUSIVE) {
-                        sysexDataStream = new ByteArrayOutputStream();
-                        sysexDataStream.write(midiOctet1);
-                        final boolean partial = readSysexData(midiInputStream, sysexDataStream);
-                        if (!partial) {
-                            result.add(new MidiTimestampPair(deltaTimeSum,
-                                    new SysexMessage(sysexDataStream.toByteArray(), sysexDataStream.size())));
-                        }
-                    } else if (midiOctet1 == (byte) SysexMessage.SPECIAL_SYSTEM_EXCLUSIVE) {
-                        final boolean partial = readSysexData(midiInputStream, sysexDataStream);
-                        if (!partial) {
-                            result.add(new MidiTimestampPair(deltaTimeSum,
-                                    new SysexMessage(sysexDataStream.toByteArray(), sysexDataStream.size())));
-                        }
-                    } else if (midiOctet1 == (byte) 0xF4) {
-                        sysexDataStream.reset();
-                    } else {
-                        ShortMessage shortMessage = null;
-                        switch (possibleStatus) {
-                            case ShortMessage.TUNE_REQUEST:
-                            case ShortMessage.TIMING_CLOCK:
-                            case ShortMessage.START:
-                            case ShortMessage.STOP:
-                            case ShortMessage.ACTIVE_SENSING:
-                            case ShortMessage.SYSTEM_RESET:
-                                shortMessage = new ShortMessage(status);
-                                break;
-                            case ShortMessage.MIDI_TIME_CODE:
-                            case ShortMessage.SONG_SELECT:
-                                status = possibleStatus;
-                                shortMessage = new ShortMessage(status, midiInputStream.readByte() & 0xFF, 0);
-                                break;
-                            case ShortMessage.SONG_POSITION_POINTER:
-                                status = possibleStatus;
-                                shortMessage = new ShortMessage(status, midiInputStream.readByte() & 0xFF,
-                                        midiInputStream.readByte() & 0xFF);
-                                break;
-                        }
-                        result.add(new MidiTimestampPair(deltaTimeSum, shortMessage));
+            final byte midiOctet1 = midiInputStream.readByte();
+            final boolean systemCommonMessage = (midiOctet1 & 0xF0) == 0xF0;
+            final int possibleStatus = midiOctet1 & 0xFF;
+            if (systemCommonMessage) {
+                if (midiOctet1 == (byte) SysexMessage.SYSTEM_EXCLUSIVE) {
+                    sysexDataStream = new ByteArrayOutputStream();
+                    sysexDataStream.write(midiOctet1);
+                    final boolean partial = readSysexData(midiInputStream, sysexDataStream);
+                    if (!partial) {
+                        result.add(new MidiTimestampPair(deltaTimeSum,
+                                new SysexMessage(sysexDataStream.toByteArray(), sysexDataStream.size())));
                     }
+                } else if (midiOctet1 == (byte) SysexMessage.SPECIAL_SYSTEM_EXCLUSIVE) {
+                    final boolean partial = readSysexData(midiInputStream, sysexDataStream);
+                    if (!partial) {
+                        result.add(new MidiTimestampPair(deltaTimeSum,
+                                new SysexMessage(sysexDataStream.toByteArray(), sysexDataStream.size())));
+                    }
+                } else if (midiOctet1 == (byte) 0xF4) {
+                    sysexDataStream.reset();
                 } else {
                     ShortMessage shortMessage = null;
-                    switch (midiOctet1 & 0xF0) {
-                        case ShortMessage.NOTE_OFF:
-                        case ShortMessage.NOTE_ON:
-                        case ShortMessage.POLY_PRESSURE:
-                        case ShortMessage.CONTROL_CHANGE:
-                        case ShortMessage.PITCH_BEND:
-                            status = possibleStatus;
-                            shortMessage = new ShortMessage(status, midiInputStream.readByte() & 0xFF,
-                                    midiInputStream.readByte() & 0xFF);
+                    switch (possibleStatus) {
+                        case ShortMessage.TUNE_REQUEST:
+                        case ShortMessage.TIMING_CLOCK:
+                        case ShortMessage.START:
+                        case ShortMessage.STOP:
+                        case ShortMessage.ACTIVE_SENSING:
+                        case ShortMessage.SYSTEM_RESET:
+                            shortMessage = new ShortMessage((byte) (status & 0xFF));
                             break;
-                        case ShortMessage.PROGRAM_CHANGE:
-                        case ShortMessage.CHANNEL_PRESSURE:
+                        case ShortMessage.MIDI_TIME_CODE:
+                        case ShortMessage.SONG_SELECT:
                             status = possibleStatus;
-                            shortMessage = new ShortMessage(status, midiInputStream.readByte() & 0xFF, 0);
+                            shortMessage = new ShortMessage((byte) (status & 0xFF), midiInputStream.readByte());
+                            break;
+                        case ShortMessage.SONG_POSITION_POINTER:
+                            status = possibleStatus;
+                            shortMessage = new ShortMessage((byte) (status & 0xFF), midiInputStream.readByte(),
+                                    midiInputStream.readByte());
                             break;
                     }
                     result.add(new MidiTimestampPair(deltaTimeSum, shortMessage));
                 }
-            } catch (final InvalidMidiDataException e) {
-                log.error("Invalid midi data", e);
+            } else {
+                ShortMessage shortMessage = null;
+                switch (midiOctet1 & 0xF0) {
+                    case ShortMessage.NOTE_OFF:
+                    case ShortMessage.NOTE_ON:
+                    case ShortMessage.POLY_PRESSURE:
+                    case ShortMessage.CONTROL_CHANGE:
+                    case ShortMessage.PITCH_BEND:
+                        status = possibleStatus;
+                        shortMessage = new ShortMessage((byte) (status & 0xFF), midiInputStream.readByte(),
+                                midiInputStream.readByte());
+                        break;
+                    case ShortMessage.PROGRAM_CHANGE:
+                    case ShortMessage.CHANNEL_PRESSURE:
+                        status = possibleStatus;
+                        shortMessage = new ShortMessage((byte) (status & 0xFF), midiInputStream.readByte());
+                        break;
+                }
+                result.add(new MidiTimestampPair(deltaTimeSum, shortMessage));
             }
         }
         if (!result.isEmpty()) {

@@ -7,11 +7,11 @@ import io.github.leovr.rtipmidi.model.AppleMidiServer;
 import io.github.leovr.rtipmidi.AppleMidiMessageListener;
 import io.github.leovr.rtipmidi.messages.AppleMidiInvitationRequest;
 import io.github.leovr.rtipmidi.messages.MidiCommandHeader;
+import io.github.leovr.rtipmidi.model.MidiMessage;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.annotation.Nonnull;
-import javax.sound.midi.MidiMessage;
 import java.lang.management.ManagementFactory;
 
 /**
