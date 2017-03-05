@@ -178,8 +178,11 @@ public class AppleMidiMessageHandler {
             }
         }
         if (!result.isEmpty()) {
-            result.forEach(midiPair -> listeners.forEach(listener -> listener
-                    .onMidiMessage(midiCommandHeader, midiPair.getMidiMessage(), midiPair.getTimestamp())));
+            for (final MidiTimestampPair midiPair : result) {
+                for (final AppleMidiMessageListener listener : listeners) {
+                    listener.onMidiMessage(midiCommandHeader, midiPair.getMidiMessage(), midiPair.getTimestamp());
+                }
+            }
         }
     }
 

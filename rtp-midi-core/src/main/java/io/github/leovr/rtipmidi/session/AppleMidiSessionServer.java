@@ -31,7 +31,6 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -121,13 +120,16 @@ public class AppleMidiSessionServer implements AppleMidiCommandListener, AppleMi
                 final byte[] receiveData = new byte[RECEIVE_BUFFER_LENGTH];
                 final DatagramPacket incomingPacket = new DatagramPacket(receiveData, receiveData.length);
                 socket.receive(incomingPacket);
-                executorService.execute(() -> {
-                    if (receiveData[0] == AppleMidiCommand.MIDI_COMMAND_HEADER1) {
-                        midiCommandHandler.handle(receiveData,
-                                new AppleMidiServer(incomingPacket.getAddress(), incomingPacket.getPort()));
-                    } else {
-                        midiMessageHandler.handle(receiveData,
-                                new AppleMidiServer(incomingPacket.getAddress(), incomingPacket.getPort()));
+                executorService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (receiveData[0] == AppleMidiCommand.MIDI_COMMAND_HEADER1) {
+                            midiCommandHandler.handle(receiveData,
+                                    new AppleMidiServer(incomingPacket.getAddress(), incomingPacket.getPort()));
+                        } else {
+                            midiMessageHandler.handle(receiveData,
+                                    new AppleMidiServer(incomingPacket.getAddress(), incomingPacket.getPort()));
+                        }
                     }
                 });
             } catch (final SocketTimeoutException ignored) {
@@ -214,8 +216,11 @@ public class AppleMidiSessionServer implements AppleMidiCommandListener, AppleMi
             final long offsetEstimate =
                     (clockSynchronization.getTimestamp3() + clockSynchronization.getTimestamp1()) / 2 -
                             clockSynchronization.getTimestamp2();
-            Optional.ofNullable(currentSessions.get(clockSynchronization.getSsrc()))
-                    .ifPresent(sessionTuple -> sessionTuple.getAppleMidiSession().setOffsetEstimate(offsetEstimate));
+
+            final AppleMidiSessionAppleMidiServer midiServer = currentSessions.get(clockSynchronization.getSsrc());
+            if (midiServer != null) {
+                midiServer.getAppleMidiSession().setOffsetEstimate(offsetEstimate);
+            }
         }
     }
 
@@ -223,8 +228,10 @@ public class AppleMidiSessionServer implements AppleMidiCommandListener, AppleMi
     public void onEndSession(@Nonnull final AppleMidiEndSession appleMidiEndSession,
                              @Nonnull final AppleMidiServer appleMidiServer) {
         log.info("Session end from: {}", appleMidiServer);
-        Optional.ofNullable(currentSessions.get(appleMidiEndSession.getSsrc())).ifPresent(
-                sessionTuple -> sessionTuple.getAppleMidiSession().onEndSession(appleMidiEndSession, appleMidiServer));
+        final AppleMidiSessionAppleMidiServer midiServer = currentSessions.get(appleMidiEndSession.getSsrc());
+        if (midiServer != null) {
+            midiServer.getAppleMidiSession().onEndSession(appleMidiEndSession, appleMidiServer);
+        }
         final AppleMidiSessionAppleMidiServer sessionTuple = currentSessions.remove(appleMidiEndSession.getSsrc());
         if (sessionTuple != null) {
             sessions.add(sessionTuple.getAppleMidiSession());
@@ -261,12 +268,12 @@ public class AppleMidiSessionServer implements AppleMidiCommandListener, AppleMi
      */
     public void removeAppleMidiSession(@Nonnull final AppleMidiSession session) {
         sessions.remove(session);
-        final Optional<Integer> ssrcOptional = currentSessions.entrySet().stream()
-                .filter(entry -> entry.getValue().getAppleMidiSession().equals(session)).findFirst()
-                .map(Map.Entry::getKey);
-        if (ssrcOptional.isPresent()) {
-            currentSessions.remove(ssrcOptional.get());
-            notifyMaxNumberOfSessions();
+        for (final Map.Entry<Integer, AppleMidiSessionAppleMidiServer> entry : currentSessions.entrySet()) {
+            if (entry.getValue().getAppleMidiSession().equals(session)) {
+                final Integer ssrc = entry.getKey();
+                currentSessions.remove(ssrc);
+                notifyMaxNumberOfSessions();
+            }
         }
     }
 
@@ -274,7 +281,9 @@ public class AppleMidiSessionServer implements AppleMidiCommandListener, AppleMi
      * Informs all {@link SessionChangeListener} about the new number of available sessions
      */
     private void notifyMaxNumberOfSessions() {
-        sessionChangeListeners.forEach(listener -> listener.onMaxNumberOfSessionsChange(sessions.size()));
+        for (final SessionChangeListener listener : sessionChangeListeners) {
+            listener.onMaxNumberOfSessionsChange(sessions.size());
+        }
     }
 
     /**

@@ -2,16 +2,16 @@ package io.github.leovr.rtipmidi.control;
 
 import io.github.leovr.rtipmidi.AppleMidiCommandListener;
 import io.github.leovr.rtipmidi.EndSessionListener;
-import io.github.leovr.rtipmidi.messages.AppleMidiClockSynchronization;
-import io.github.leovr.rtipmidi.messages.AppleMidiEndSession;
-import io.github.leovr.rtipmidi.messages.AppleMidiInvitationAccepted;
-import io.github.leovr.rtipmidi.model.AppleMidiServer;
 import io.github.leovr.rtipmidi.error.AppleMidiControlServerRuntimeException;
 import io.github.leovr.rtipmidi.handler.AppleMidiCommandHandler;
+import io.github.leovr.rtipmidi.messages.AppleMidiClockSynchronization;
 import io.github.leovr.rtipmidi.messages.AppleMidiCommand;
+import io.github.leovr.rtipmidi.messages.AppleMidiEndSession;
 import io.github.leovr.rtipmidi.messages.AppleMidiInvitation;
+import io.github.leovr.rtipmidi.messages.AppleMidiInvitationAccepted;
 import io.github.leovr.rtipmidi.messages.AppleMidiInvitationDeclined;
 import io.github.leovr.rtipmidi.messages.AppleMidiInvitationRequest;
+import io.github.leovr.rtipmidi.model.AppleMidiServer;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -98,14 +98,14 @@ public class AppleMidiControlServer extends Thread implements AppleMidiCommandLi
      * Sends a end session message to all servers and stops the main loop.
      */
     public void stopServer() {
-        acceptedServers.forEach(server -> {
+        for (final AppleMidiServer server : acceptedServers) {
             try {
                 log.info("Sending end session to {}", server);
                 send(new AppleMidiEndSession(2, getNewInitiatorToken(), ssrc), server);
             } catch (final IOException e) {
                 log.info("Error closing session with server: {}", server, e);
             }
-        });
+        }
         running = false;
         acceptedServers.clear();
         log.debug("MIDI control server stopped");
@@ -184,7 +184,9 @@ public class AppleMidiControlServer extends Thread implements AppleMidiCommandLi
                              @Nonnull final AppleMidiServer appleMidiServer) {
         log.info("Session ended with: {}", appleMidiServer);
         acceptedServers.remove(appleMidiServer);
-        endSessionListeners.forEach(listener -> listener.onEndSession(appleMidiEndSession, appleMidiServer));
+        for (final EndSessionListener listener : endSessionListeners) {
+            listener.onEndSession(appleMidiEndSession, appleMidiServer);
+        }
     }
 
     /**

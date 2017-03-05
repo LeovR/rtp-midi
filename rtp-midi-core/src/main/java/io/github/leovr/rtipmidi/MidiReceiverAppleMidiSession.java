@@ -27,6 +27,8 @@ public class MidiReceiverAppleMidiSession extends AppleMidiSession {
 
     @Override
     protected void onMidiMessage(final MidiMessage message, final long timestamp) {
-        receivers.forEach(receiver -> receiver.send(message, timestamp));
+        for (final Receiver receiver : receivers) {
+            receiver.send(message, timestamp);
+        }
     }
 }

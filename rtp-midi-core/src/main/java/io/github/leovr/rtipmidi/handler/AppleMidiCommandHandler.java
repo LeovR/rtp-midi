@@ -3,9 +3,9 @@ package io.github.leovr.rtipmidi.handler;
 import io.github.leovr.rtipmidi.AppleMidiCommandListener;
 import io.github.leovr.rtipmidi.messages.AppleMidiClockSynchronization;
 import io.github.leovr.rtipmidi.messages.AppleMidiEndSession;
-import io.github.leovr.rtipmidi.model.AppleMidiServer;
 import io.github.leovr.rtipmidi.messages.AppleMidiInvitationRequest;
 import io.github.leovr.rtipmidi.messages.CommandWord;
+import io.github.leovr.rtipmidi.model.AppleMidiServer;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
@@ -33,7 +33,7 @@ public class AppleMidiCommandHandler {
         listeners.add(new AppleMidiCommandLogListener());
     }
 
-    public void handle(@Nonnull final byte[] data,@Nonnull final AppleMidiServer appleMidiServer) {
+    public void handle(@Nonnull final byte[] data, @Nonnull final AppleMidiServer appleMidiServer) {
         final DataInputStream dataInputStream = new DataInputStream(new ByteArrayInputStream(data));
         try {
             final byte header1 = dataInputStream.readByte();
@@ -85,8 +85,9 @@ public class AppleMidiCommandHandler {
         }
         final int initiatorToken = dataInputStream.readInt();
         final int ssrc = dataInputStream.readInt();
-        listeners.forEach(listener -> listener
-                .onEndSession(new AppleMidiEndSession(protocolVersion, initiatorToken, ssrc), appleMidiServer));
+        for (final AppleMidiCommandListener listener : listeners) {
+            listener.onEndSession(new AppleMidiEndSession(protocolVersion, initiatorToken, ssrc), appleMidiServer);
+        }
     }
 
     private void handleSynchronization(final DataInputStream dataInputStream,
@@ -101,8 +102,11 @@ public class AppleMidiCommandHandler {
         final long timestamp1 = dataInputStream.readLong();
         final long timestamp2 = dataInputStream.readLong();
         final long timestamp3 = dataInputStream.readLong();
-        listeners.forEach(listener -> listener.onClockSynchronization(
-                new AppleMidiClockSynchronization(ssrc, count, timestamp1, timestamp2, timestamp3), appleMidiServer));
+        for (final AppleMidiCommandListener listener : listeners) {
+            listener.onClockSynchronization(
+                    new AppleMidiClockSynchronization(ssrc, count, timestamp1, timestamp2, timestamp3),
+                    appleMidiServer);
+        }
     }
 
     private void handleInvitation(final DataInputStream dataInputStream, final AppleMidiServer appleMidiServer) throws
@@ -120,9 +124,10 @@ public class AppleMidiCommandHandler {
             return;
         }
         final String name = scanner.next();
-        listeners.forEach(listener -> listener
-                .onMidiInvitation(new AppleMidiInvitationRequest(protocolVersion, initiatorToken, ssrc, name),
-                        appleMidiServer));
+        for (final AppleMidiCommandListener listener : listeners) {
+            listener.onMidiInvitation(new AppleMidiInvitationRequest(protocolVersion, initiatorToken, ssrc, name),
+                    appleMidiServer);
+        }
     }
 
     public void registerListener(@Nonnull final AppleMidiCommandListener appleMidiCommandListener) {
