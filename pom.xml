@@ -9,6 +9,7 @@
 
     <modules>
         <module>rtp-midi-core</module>
+        <module>rtp-midi-javax-sound-midi</module>
     </modules>
 
     <name>rtp-midi</name>
