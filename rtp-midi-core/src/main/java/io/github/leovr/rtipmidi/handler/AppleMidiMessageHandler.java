@@ -1,13 +1,13 @@
 package io.github.leovr.rtipmidi.handler;
 
 import io.github.leovr.rtipmidi.AppleMidiMessageListener;
+import io.github.leovr.rtipmidi.messages.AppleMidiMessage;
 import io.github.leovr.rtipmidi.messages.MidiCommandHeader;
+import io.github.leovr.rtipmidi.messages.MidiTimestampPair;
 import io.github.leovr.rtipmidi.messages.RtpHeader;
 import io.github.leovr.rtipmidi.model.AppleMidiServer;
-import io.github.leovr.rtipmidi.model.MidiMessage;
 import io.github.leovr.rtipmidi.model.ShortMessage;
 import io.github.leovr.rtipmidi.model.SysexMessage;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
@@ -73,25 +73,30 @@ public class AppleMidiMessageHandler {
                 return;
             }
 
+            final List<MidiTimestampPair> messages = new ArrayList<>();
             try (final DataInputStream midiInputStream = new DataInputStream(
                     new ByteArrayInputStream(midiCommandBuffer))) {
-                readMidiMessages(midiCommandHeader, midiInputStream);
+                messages.addAll(readMidiMessages(midiCommandHeader, midiInputStream));
             }
+
+            handleMessage(new AppleMidiMessage(midiCommandHeader, messages));
 
         } catch (final IOException e) {
             log.error("IOException while processing MIDI message", e);
         }
     }
 
-    @Value
-    private static class MidiTimestampPair {
-
-        private int timestamp;
-        private MidiMessage midiMessage;
+    private void handleMessage(final AppleMidiMessage message) {
+        for (final MidiTimestampPair midiPair : message.getMessages()) {
+            for (final AppleMidiMessageListener listener : listeners) {
+                listener.onMidiMessage(message.getMidiCommandHeader(), midiPair.getMidiMessage(),
+                        midiPair.getTimestamp());
+            }
+        }
     }
 
-    private void readMidiMessages(final MidiCommandHeader midiCommandHeader,
-                                  final DataInputStream midiInputStream) throws IOException {
+    private List<MidiTimestampPair> readMidiMessages(final MidiCommandHeader midiCommandHeader,
+                                                     final DataInputStream midiInputStream) throws IOException {
         final List<MidiTimestampPair> result = new ArrayList<>();
 
         int status = -1;
@@ -148,8 +153,13 @@ public class AppleMidiMessageHandler {
                             shortMessage = new ShortMessage((byte) (status & 0xFF), midiInputStream.readByte(),
                                     midiInputStream.readByte());
                             break;
+                        default:
+                            log.error("Invalid Message-status: {}", possibleStatus);
+                            break;
                     }
-                    result.add(new MidiTimestampPair(deltaTimeSum, shortMessage));
+                    if (shortMessage != null) {
+                        result.add(new MidiTimestampPair(deltaTimeSum, shortMessage));
+                    }
                 }
             } else {
                 ShortMessage shortMessage = null;
@@ -168,17 +178,16 @@ public class AppleMidiMessageHandler {
                         status = possibleStatus;
                         shortMessage = new ShortMessage((byte) (status & 0xFF), midiInputStream.readByte());
                         break;
+                    default:
+                        log.error("Invalid ShortMessage-status: {}", midiOctet1 & 0xF0);
+                        break;
                 }
-                result.add(new MidiTimestampPair(deltaTimeSum, shortMessage));
-            }
-        }
-        if (!result.isEmpty()) {
-            for (final MidiTimestampPair midiPair : result) {
-                for (final AppleMidiMessageListener listener : listeners) {
-                    listener.onMidiMessage(midiCommandHeader, midiPair.getMidiMessage(), midiPair.getTimestamp());
+                if (shortMessage != null) {
+                    result.add(new MidiTimestampPair(deltaTimeSum, shortMessage));
                 }
             }
         }
+        return result;
     }
 
     /**
