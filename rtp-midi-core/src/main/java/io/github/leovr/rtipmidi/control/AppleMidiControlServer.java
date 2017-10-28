@@ -140,6 +140,10 @@ public class AppleMidiControlServer extends Thread implements AppleMidiCommandLi
     public void onMidiInvitation(@Nonnull final AppleMidiInvitationRequest invitation,
                                  @Nonnull final AppleMidiServer appleMidiServer) {
         log.info("MIDI invitation from: {}", appleMidiServer);
+        final boolean removed = acceptedServers.remove(appleMidiServer);
+        if (removed) {
+            log.info("Server {} was still in accepted servers list. Removing old entry.", appleMidiServer);
+        }
         if (getServerState() == State.ACCEPT_INVITATIONS) {
             sendMidiInvitationAnswer(appleMidiServer, "accept",
                     new AppleMidiInvitationAccepted(invitation.getProtocolVersion(), invitation.getInitiatorToken(),
