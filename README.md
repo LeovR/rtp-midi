@@ -27,10 +27,11 @@ To announce the server via Apple's bonjour the [jMDNS](https://github.com/jmdns/
                         ServiceInfo.create("_apple-midi._udp.local.", "rtpMidiJava", 50004, "apple-midi");
                 jmdns.registerService(serviceInfo);
 
-                MidiDevice midiDevice = ;//get MIDI device somehow
+                MidiDevice midiDevice = ;//get MIDI device
 
                 AppleMidiServer server = new AppleMidiServer();
-                server.addAppleMidiSession(new MidiDeviceAppleMidiSession(midiDevice));
+                server.addAppleMidiSession(
+                                new MidiDeviceAppleMidiSession(new MidiDeviceModePair(midiDevice, MidiDeviceMode.READ_ONLY)));
 
                 server.start();
 
