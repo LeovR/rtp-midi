@@ -22,6 +22,18 @@ class JavaxMidiMessageConverter {
         throw new IllegalArgumentException("Message could not be converted");
     }
 
+    io.github.leovr.rtipmidi.model.MidiMessage convert(final MidiMessage message) {
+        if (message instanceof javax.sound.midi.ShortMessage) {
+            final javax.sound.midi.ShortMessage shortMessage = (javax.sound.midi.ShortMessage) message;
+            return new ShortMessage((byte) shortMessage.getCommand(), (byte) shortMessage.getData1(),
+                    (byte) shortMessage.getData2());
+        } else if (message instanceof javax.sound.midi.SysexMessage) {
+            final javax.sound.midi.SysexMessage sysexMessage = (javax.sound.midi.SysexMessage) message;
+            return new SysexMessage(sysexMessage.getMessage(), sysexMessage.getLength());
+        }
+        throw new IllegalArgumentException("Message could not be converted");
+    }
+
     private MidiMessage handleSysexMessage(final SysexMessage message) {
         return new SysexMessageAdapter(message);
     }

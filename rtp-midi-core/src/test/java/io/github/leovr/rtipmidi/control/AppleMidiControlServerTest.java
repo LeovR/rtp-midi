@@ -48,7 +48,7 @@ public class AppleMidiControlServerTest {
 
     @Before
     public void setUp() throws Exception {
-        server = new AppleMidiControlServer(handler, 17, "test", 0) {
+        server = new AppleMidiControlServer(handler, "test", 0) {
             @Override
             DatagramSocket initDatagramSocket() throws SocketException {
                 return socket;
@@ -83,6 +83,7 @@ public class AppleMidiControlServerTest {
     @Test
     public void testAcceptMidiInvitation() throws Exception {
         server.start();
+        server.setSsrc(17);
         server.setMaxNumberOfSessions(1);
 
         server.onMidiInvitation(new AppleMidiInvitationRequest(2, 1, 1, "initiator"), appleMidiServer);
@@ -102,6 +103,7 @@ public class AppleMidiControlServerTest {
     @Test
     public void testDeclineMidiInvitation() throws Exception {
         server.start();
+        server.setSsrc(17);
 
         server.onMidiInvitation(new AppleMidiInvitationRequest(2, 1, 1, "initiator"), appleMidiServer);
         verify(socket).send(datagramPacketArgumentCaptor.capture());
@@ -117,6 +119,7 @@ public class AppleMidiControlServerTest {
     @Test
     public void testEndSession() throws Exception {
         server.start();
+        server.setSsrc(17);
         server.registerEndSessionListener(endSessionListener);
         server.setMaxNumberOfSessions(1);
 

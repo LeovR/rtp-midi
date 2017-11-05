@@ -12,6 +12,7 @@ import io.github.leovr.rtipmidi.messages.AppleMidiInvitationAccepted;
 import io.github.leovr.rtipmidi.messages.AppleMidiInvitationDeclined;
 import io.github.leovr.rtipmidi.messages.AppleMidiInvitationRequest;
 import io.github.leovr.rtipmidi.model.AppleMidiServer;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -53,6 +54,7 @@ public class AppleMidiControlServer extends Thread implements AppleMidiCommandLi
     @Setter
     private int maxNumberOfSessions;
     private boolean running = true;
+    @Setter(AccessLevel.PACKAGE)
     private int ssrc;
     private final String name;
     private final AppleMidiCommandHandler handler;

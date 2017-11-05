@@ -18,5 +18,23 @@ public abstract class JavaxAppleMidiSession extends AppleMidiSession {
         onMidiMessage(midiMessageConverter.convert(message), timestamp);
     }
 
-    protected abstract void onMidiMessage(final javax.sound.midi.MidiMessage message, final long timestamp);
+    /**
+     * This method is called when a new {@link javax.sound.midi.MidiMessage} is received
+     *
+     * @param message   The MIDI-message
+     * @param timestamp The timestamp of this message
+     */
+    protected void onMidiMessage(final javax.sound.midi.MidiMessage message, final long timestamp) {
+    }
+
+    /**
+     * This method sends a {@link javax.sound.midi.MidiMessage}
+     *
+     * @param message   The message to deliver
+     * @param timestamp The timestamp of this message
+     */
+    protected void sendMidiMessage(final javax.sound.midi.MidiMessage message, final long timestamp) {
+        final MidiMessage midiMessage = midiMessageConverter.convert(message);
+        sendMidiMessage(midiMessage, timestamp);
+    }
 }

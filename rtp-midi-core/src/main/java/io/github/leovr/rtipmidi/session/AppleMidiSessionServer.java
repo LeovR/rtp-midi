@@ -12,11 +12,12 @@ import io.github.leovr.rtipmidi.messages.AppleMidiInvitation;
 import io.github.leovr.rtipmidi.messages.AppleMidiInvitationAccepted;
 import io.github.leovr.rtipmidi.messages.AppleMidiInvitationDeclined;
 import io.github.leovr.rtipmidi.messages.AppleMidiInvitationRequest;
+import io.github.leovr.rtipmidi.messages.AppleMidiMessage;
 import io.github.leovr.rtipmidi.messages.MidiCommandHeader;
 import io.github.leovr.rtipmidi.model.AppleMidiServer;
 import io.github.leovr.rtipmidi.model.MidiMessage;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Hex;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -38,25 +39,17 @@ import java.util.concurrent.Executors;
 /**
  * The session server handles MIDI invitation, clock synchronin requests, as well as the MIDI messages. In order to
  * handle MIDI messages a {@link AppleMidiSession} has to be added via {@link #addAppleMidiSession(AppleMidiSession)}.
- * Otherwise all invitation requests are rejected.
- * The session server must be run on a port which is {@code control port + 1}
+ * Otherwise all invitation requests are rejected. The session server must be run on a port which is {@code control port
+ * + 1}
  */
 @Slf4j
-public class AppleMidiSessionServer implements AppleMidiCommandListener, AppleMidiMessageListener, Runnable {
+public class AppleMidiSessionServer implements AppleMidiCommandListener, AppleMidiMessageListener, Runnable,
+        AppleMidiMessageSender {
 
     private static final int SOCKET_TIMEOUT = 1000;
 
     private enum State {
         ACCEPT_INVITATIONS, FULL
-    }
-
-    @Value
-    private static class AppleMidiSessionAppleMidiServer {
-
-        @Nonnull
-        private AppleMidiSession appleMidiSession;
-        @Nonnull
-        private AppleMidiServer appleMidiServer;
     }
 
     private static final int RECEIVE_BUFFER_LENGTH = 1024;
@@ -70,7 +63,7 @@ public class AppleMidiSessionServer implements AppleMidiCommandListener, AppleMi
     private boolean running = true;
     private DatagramSocket socket;
     private final Deque<AppleMidiSession> sessions = new ArrayDeque<>();
-    private final Map<Integer, AppleMidiSessionAppleMidiServer> currentSessions = new HashMap<>();
+    private final Map<Integer, AppleMidiSessionConnection> currentSessions = new HashMap<>();
     private final List<SessionChangeListener> sessionChangeListeners = new ArrayList<>();
     private Thread thread;
 
@@ -152,10 +145,20 @@ public class AppleMidiSessionServer implements AppleMidiCommandListener, AppleMi
     }
 
     private void send(final AppleMidiCommand midiCommand, final AppleMidiServer appleMidiServer) throws IOException {
-        final byte[] invitationAcceptedBytes = midiCommand.toByteArray();
+        send(midiCommand.toByteArray(), appleMidiServer);
+    }
 
-        socket.send(new DatagramPacket(invitationAcceptedBytes, invitationAcceptedBytes.length,
-                appleMidiServer.getInetAddress(), appleMidiServer.getPort()));
+    private void send(final byte[] data, final AppleMidiServer appleMidiServer) throws IOException {
+        if (log.isTraceEnabled()) {
+            log.trace("Sending data {} to server {}", Hex.encodeHexString(data), appleMidiServer);
+        }
+        socket.send(new DatagramPacket(data, data.length, appleMidiServer.getInetAddress(), appleMidiServer.getPort()));
+    }
+
+    @Override
+    public void send(@Nonnull final AppleMidiMessage appleMidiMessage,
+                     @Nonnull final AppleMidiServer appleMidiServer) throws IOException {
+        send(appleMidiMessage.toByteArray(), appleMidiServer);
     }
 
     @Override
@@ -166,8 +169,11 @@ public class AppleMidiSessionServer implements AppleMidiCommandListener, AppleMi
             sendMidiInvitationAnswer(appleMidiServer, "accept",
                     new AppleMidiInvitationAccepted(invitation.getProtocolVersion(), invitation.getInitiatorToken(),
                             ssrc, name));
-            currentSessions
-                    .put(invitation.getSsrc(), new AppleMidiSessionAppleMidiServer(sessions.pop(), appleMidiServer));
+            final AppleMidiSession appleMidiSession = sessions.pop();
+            final AppleMidiSessionConnection connection =
+                    new AppleMidiSessionConnection(appleMidiSession, appleMidiServer, ssrc, this);
+            appleMidiSession.setSender(connection);
+            currentSessions.put(invitation.getSsrc(), connection);
             notifyMaxNumberOfSessions();
         } else {
             sendMidiInvitationAnswer(appleMidiServer, "decline",
@@ -197,13 +203,19 @@ public class AppleMidiSessionServer implements AppleMidiCommandListener, AppleMi
     public void onClockSynchronization(@Nonnull final AppleMidiClockSynchronization clockSynchronization,
                                        @Nonnull final AppleMidiServer appleMidiServer) {
         if (clockSynchronization.getCount() == (byte) 0) {
-            final AppleMidiSessionAppleMidiServer sessionTuple = currentSessions.get(clockSynchronization.getSsrc());
+            final AppleMidiSessionConnection sessionTuple = currentSessions.get(clockSynchronization.getSsrc());
             final long currentTimestamp;
-            if (sessionTuple != null && sessionTuple.getAppleMidiSession().getCurrentTimestamp() != -1) {
-                currentTimestamp = sessionTuple.getAppleMidiSession().getCurrentTimestamp();
+            if (sessionTuple != null) {
+                final long sessionTimestamp = sessionTuple.getAppleMidiSession().getCurrentTimestamp();
+                if (sessionTimestamp != -1) {
+                    currentTimestamp = sessionTimestamp;
+                } else {
+                    currentTimestamp = getFallbackTimestamp();
+                }
             } else {
-                currentTimestamp = ManagementFactory.getRuntimeMXBean().getUptime() * 10;
+                currentTimestamp = getFallbackTimestamp();
             }
+            log.debug("Answering with timestamp: {}", currentTimestamp);
             final AppleMidiClockSynchronization clockSynchronizationAnswer =
                     new AppleMidiClockSynchronization(ssrc, (byte) 1, clockSynchronization.getTimestamp1(),
                             currentTimestamp, 0L);
@@ -217,22 +229,28 @@ public class AppleMidiSessionServer implements AppleMidiCommandListener, AppleMi
                     (clockSynchronization.getTimestamp3() + clockSynchronization.getTimestamp1()) / 2 -
                             clockSynchronization.getTimestamp2();
 
-            final AppleMidiSessionAppleMidiServer midiServer = currentSessions.get(clockSynchronization.getSsrc());
+            final AppleMidiSessionConnection midiServer = currentSessions.get(clockSynchronization.getSsrc());
             if (midiServer != null) {
                 midiServer.getAppleMidiSession().setOffsetEstimate(offsetEstimate);
             }
         }
     }
 
+    private long getFallbackTimestamp() {
+        return ManagementFactory.getRuntimeMXBean().getUptime() * 10;
+    }
+
     @Override
     public void onEndSession(@Nonnull final AppleMidiEndSession appleMidiEndSession,
                              @Nonnull final AppleMidiServer appleMidiServer) {
         log.info("Session end from: {}", appleMidiServer);
-        final AppleMidiSessionAppleMidiServer midiServer = currentSessions.get(appleMidiEndSession.getSsrc());
+        final AppleMidiSessionConnection midiServer = currentSessions.get(appleMidiEndSession.getSsrc());
         if (midiServer != null) {
-            midiServer.getAppleMidiSession().onEndSession(appleMidiEndSession, appleMidiServer);
+            final AppleMidiSession appleMidiSession = midiServer.getAppleMidiSession();
+            appleMidiSession.setSender(null);
+            appleMidiSession.onEndSession(appleMidiEndSession, appleMidiServer);
         }
-        final AppleMidiSessionAppleMidiServer sessionTuple = currentSessions.remove(appleMidiEndSession.getSsrc());
+        final AppleMidiSessionConnection sessionTuple = currentSessions.remove(appleMidiEndSession.getSsrc());
         if (sessionTuple != null) {
             sessions.add(sessionTuple.getAppleMidiSession());
             notifyMaxNumberOfSessions();
@@ -242,8 +260,7 @@ public class AppleMidiSessionServer implements AppleMidiCommandListener, AppleMi
     @Override
     public void onMidiMessage(final MidiCommandHeader midiCommandHeader, final MidiMessage message,
                               final int timestamp) {
-        final AppleMidiSessionAppleMidiServer sessionTuple =
-                currentSessions.get(midiCommandHeader.getRtpHeader().getSsrc());
+        final AppleMidiSessionConnection sessionTuple = currentSessions.get(midiCommandHeader.getRtpHeader().getSsrc());
         if (sessionTuple != null) {
             sessionTuple.getAppleMidiSession().onMidiMessage(midiCommandHeader, message, timestamp);
         } else {
@@ -268,7 +285,7 @@ public class AppleMidiSessionServer implements AppleMidiCommandListener, AppleMi
      */
     public void removeAppleMidiSession(@Nonnull final AppleMidiSession session) {
         sessions.remove(session);
-        for (final Map.Entry<Integer, AppleMidiSessionAppleMidiServer> entry : currentSessions.entrySet()) {
+        for (final Map.Entry<Integer, AppleMidiSessionConnection> entry : currentSessions.entrySet()) {
             if (entry.getValue().getAppleMidiSession().equals(session)) {
                 final Integer ssrc = entry.getKey();
                 currentSessions.remove(ssrc);

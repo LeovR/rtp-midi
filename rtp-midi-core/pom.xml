@@ -28,6 +28,11 @@
             <artifactId>jsr305</artifactId>
             <version>3.0.1</version>
         </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.9</version>
+        </dependency>
 
         <!-- Test -->
 
