@@ -20,9 +20,16 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
@@ -46,7 +53,7 @@ public class AppleMidiControlServer extends Thread implements AppleMidiCommandLi
     @Setter
     private int maxNumberOfSessions;
     private boolean running = true;
-    private final int ssrc;
+    private int ssrc;
     private final String name;
     private final AppleMidiCommandHandler handler;
     private DatagramSocket socket;
@@ -58,21 +65,18 @@ public class AppleMidiControlServer extends Thread implements AppleMidiCommandLi
      * @param port The control port
      */
     public AppleMidiControlServer(@Nonnull final String name, final int port) {
-        this(new AppleMidiCommandHandler(), new Random().nextInt(), name, port);
+        this(new AppleMidiCommandHandler(), name, port);
     }
 
     /**
      * @param handler {@link AppleMidiCommandHandler} to handle incoming data
-     * @param ssrc    The ssrc identity to use
      * @param name    The name under which the other peers should see this server
      * @param port    The control port
      */
-    AppleMidiControlServer(@Nonnull final AppleMidiCommandHandler handler, final int ssrc, @Nonnull final String name,
-                           final int port) {
+    AppleMidiControlServer(@Nonnull final AppleMidiCommandHandler handler, @Nonnull final String name, final int port) {
         super(name + THREAD_SUFFIX);
         this.handler = handler;
         this.port = port;
-        this.ssrc = ssrc;
         this.name = name;
         handler.registerListener(this);
     }
@@ -83,11 +87,42 @@ public class AppleMidiControlServer extends Thread implements AppleMidiCommandLi
         try {
             socket = initDatagramSocket();
             socket.setSoTimeout(SOCKET_TIMEOUT);
+
+            String hostName;
+            try {
+                hostName = InetAddress.getLocalHost().getHostName();
+            } catch (final UnknownHostException e) {
+                hostName = "";
+            }
+            initialize(hostName);
         } catch (final SocketException e) {
             throw new AppleMidiControlServerRuntimeException("DatagramSocket cannot be opened", e);
         }
         super.start();
         log.debug("MIDI control server started");
+    }
+
+    private void initialize(final String hostName) {
+        this.ssrc = createSsrc(hostName);
+    }
+
+    private int createSsrc(final String hostName) {
+        try {
+            final MessageDigest md = MessageDigest.getInstance("MD5");
+            md.update(String.valueOf(new Date().getTime()).getBytes());
+            md.update(String.valueOf(System.identityHashCode(this)).getBytes());
+            md.update(Paths.get("").toAbsolutePath().normalize().toString().getBytes());
+            md.update(hostName.getBytes());
+            final byte[] md5 = md.digest();
+            int ssrc = 0;
+            final ByteBuffer byteBuffer = ByteBuffer.wrap(md5);
+            for (int i = 0; i < 3; i++) {
+                ssrc ^= byteBuffer.getInt();
+            }
+            return ssrc;
+        } catch (final NoSuchAlgorithmException e) {
+            throw new RuntimeException("Could not get MD5 algorithm", e);
+        }
     }
 
     DatagramSocket initDatagramSocket() throws SocketException {
@@ -140,9 +175,11 @@ public class AppleMidiControlServer extends Thread implements AppleMidiCommandLi
     public void onMidiInvitation(@Nonnull final AppleMidiInvitationRequest invitation,
                                  @Nonnull final AppleMidiServer appleMidiServer) {
         log.info("MIDI invitation from: {}", appleMidiServer);
-        final boolean removed = acceptedServers.remove(appleMidiServer);
-        if (removed) {
+        final boolean contains = acceptedServers.contains(appleMidiServer);
+        if (contains) {
             log.info("Server {} was still in accepted servers list. Removing old entry.", appleMidiServer);
+            onEndSession(new AppleMidiEndSession(invitation.getProtocolVersion(), invitation.getInitiatorToken(),
+                    invitation.getSsrc()), appleMidiServer);
         }
         if (getServerState() == State.ACCEPT_INVITATIONS) {
             sendMidiInvitationAnswer(appleMidiServer, "accept",
