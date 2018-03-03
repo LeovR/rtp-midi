@@ -141,6 +141,7 @@ public class AppleMidiMessageHandler {
                         case ShortMessage.STOP:
                         case ShortMessage.ACTIVE_SENSING:
                         case ShortMessage.SYSTEM_RESET:
+                            status = possibleStatus;
                             shortMessage = new ShortMessage((byte) (status & 0xFF));
                             break;
                         case ShortMessage.MIDI_TIME_CODE:
